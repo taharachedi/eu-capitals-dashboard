@@ -1,7 +1,9 @@
 import csv, json, math, time
 import requests
 
-PARIS_LAT, PARIS_LON = 48.8566, 2.3522
+# Origin city -- change these 3 values to rank from another departure city
+ORIGIN_NAME = "London"
+ORIGIN_LAT, ORIGIN_LON = 51.5074, -0.1278
 EMISSIONS_FACTOR_KG_PER_KM = 0.15  # DEFRA-style short-haul factor -- verify/update
 
 def haversine_km(lat1, lon1, lat2, lon2):
@@ -14,13 +16,7 @@ def haversine_km(lat1, lon1, lat2, lon2):
 
 def fetch_weather_batch(lats, lons, retries=4, backoff=5):
     """One request for every destination at once, instead of one connection per
-    capital. This isn't just fewer lines -- it fixes a real failure mode: 26
-    separate TLS handshakes from a shared GitHub Actions runner IP is 26 separate
-    chances for a connection to hang or get throttled, and in testing it reliably
-    failed partway through (a handful of capitals fetched fine, then the rest
-    started timing out on every retry). One request means one connection, and it
-    is also roughly 100x faster in practice (all 26 forecasts typically arrive in
-    well under a second)."""
+    capital: fewer chances for a connection to hang or get throttled."""
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": ",".join(str(v) for v in lats),
@@ -53,10 +49,12 @@ def main():
     with open("data/capitals.csv") as f:
         rows = list(csv.DictReader(f))
 
-    dest_rows = [row for row in rows if row["capital"] != "Paris"]
+    # Exclude the origin only if it is one of the capitals (London is not, so all 27 stay)
+    dest_rows = [row for row in rows if row["capital"] != ORIGIN_NAME]
     lats = [float(row["lat"]) for row in dest_rows]
     lons = [float(row["lon"]) for row in dest_rows]
 
+    print(f"Origin: {ORIGIN_NAME}")
     print(f"Fetching weather for {len(dest_rows)} capitals in a single batched request...")
     weather = fetch_weather_batch(lats, lons)
     if len(weather) != len(dest_rows):
@@ -68,7 +66,7 @@ def main():
 
     destinations = []
     for row, lat, lon, wx in zip(dest_rows, lats, lons, weather):
-        distance_km = haversine_km(PARIS_LAT, PARIS_LON, lat, lon)
+        distance_km = haversine_km(ORIGIN_LAT, ORIGIN_LON, lat, lon)
         daily = wx["daily"]
         avg_temp = sum(daily["temperature_2m_max"]) / len(daily["temperature_2m_max"])
         total_precip = sum(daily["precipitation_sum"])
@@ -97,6 +95,7 @@ def main():
 
     output = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "origin": ORIGIN_NAME,
         "emissions_factor_kg_per_km": EMISSIONS_FACTOR_KG_PER_KM,
         "destinations": destinations,
     }
