@@ -37,7 +37,12 @@ much closer than Athens, Valletta or Nicosia. With a 50/50 formula, it should
 keep a good CO2 score while having one of the best weather scores.
 
 ## 6. Was my prediction right?
-(TO FILL after the first workflow run)
+Yes: the dashboard recommended **Madrid, Spain** (weather score 0.81, CO2 score
+0.71, 315.9 kg CO2e round trip, 1,052.9 km each way), which matches my
+prediction. This shows the 50/50 formula rewards a "good compromise" city rather
+than the best city on one criterion: on the scatter plot, the destination with
+the best weather (score close to 1.0) is far from Paris, so its poor CO2 score
+pulls its final score down, while Madrid is good on both axes at once.
 
 ## 7. Signal that the pipeline silently broke
 The only visible signal is the "Data last updated …" timestamp at the bottom of
