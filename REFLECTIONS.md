@@ -58,7 +58,14 @@ Paris coordinates with ORIGIN_NAME / ORIGIN_LAT / ORIGIN_LON (London), used
 ORIGIN_NAME in the exclusion filter, and wrote "origin" into rankings.json. In
 docs/index.html, I read data.origin to display the city name instead of the
 hardcoded "Paris", and made the chart title use dest.length (27 destinations
-now, since London is not in the list). These were the right places because the
-script owns the data and the page should only display what the data says. The
-"best" destination is not absolute: distances and CO2 scores depend on the
-origin, so the ranking changes with the starting city.
+now, since London is not in the list, so Paris becomes a destination). These
+were the right places because the script owns the data and the page should
+only display what the data says. I also added a cache-busting parameter
+(?t=Date.now()) to the fetch, because the page first kept showing the old
+Paris data from the browser/CDN cache.
+
+The "best" destination is not absolute. From London, Madrid still wins
+(0.741, 1,263 km instead of 1,053 km), but the rest of the ranking changed:
+Paris enters at 3rd place and Dublin climbs to 4th because they are very close
+to London, while Rome and Valletta drop. The weather is identical; only the
+distances, and therefore the normalized CO2 scores, depend on the origin.
