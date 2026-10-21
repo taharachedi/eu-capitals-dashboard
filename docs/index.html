@@ -21,7 +21,7 @@
   <p id="updated"></p>
 
 <script>
-fetch('data/rankings.json')
+   fetch('data/rankings.json?t=' + Date.now())
   .then(r => r.json())
   .then(data => {
     const dest = data.destinations;
